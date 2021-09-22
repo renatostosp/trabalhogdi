@@ -1,6 +1,7 @@
 {
 	"name": "Parte1",
 	"properties": {
+		"description": "Fluxo de ingestão no ADF e\narmazenamento do arquivo movies no formato Parquet em um Data Lake Storage.",
 		"activities": [
 			{
 				"name": "Copy data1",
