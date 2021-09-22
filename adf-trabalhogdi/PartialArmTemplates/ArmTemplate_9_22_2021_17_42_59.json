@@ -1,0 +1,58 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Nome do Data Factory",
+			"defaultValue": "adf-trabalhogdi"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DelimitedText2",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "movies_filtered",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						},
+						{
+							"dataset": {
+								"referenceName": "filtered_movies",
+								"type": "DatasetReference"
+							},
+							"name": "sink2"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Filtrar1"
+						}
+					],
+					"script": "source(output(\n\t\tname as string,\n\t\trating as string,\n\t\tgenre as string,\n\t\tyear as integer,\n\t\treleased as string,\n\t\tscore as double,\n\t\tvotes as double,\n\t\tdirector as string,\n\t\twriter as string,\n\t\tstar as string,\n\t\tcountry as string,\n\t\tbudget as double,\n\t\tgross as double,\n\t\tcompany as string,\n\t\truntime as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source1\nsource1 filter(year>=1990 && genre=='Comedy') ~> Filtrar1\nFiltrar1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tpartitionFileNames:['movies_filtered.parquet'],\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tmapColumn(\n\t\tname,\n\t\trating,\n\t\tgenre\n\t),\n\tpartitionBy('hash', 1)) ~> sink1\nFiltrar1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tname as string,\n\t\trating as string,\n\t\tgenre as string,\n\t\tyear as string,\n\t\treleased as string,\n\t\tscore as string,\n\t\tvotes as string,\n\t\tdirector as string,\n\t\twriter as string,\n\t\tstar as string,\n\t\tcountry as string,\n\t\tbudget as string,\n\t\tgross as string,\n\t\tcompany as string,\n\t\truntime as string\n\t),\n\tpartitionFileNames:['movies_filtered.csv'],\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sink2"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
